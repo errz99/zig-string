@@ -60,7 +60,7 @@ pub const String = struct {
 
     /// Returns the size of the internal buffer
     pub fn capacity(self: String) usize {
-        if (self.buffer) |buffer| return buffer.len;
+        if (self.buffer) |buffer| return buffer.len - 1;
         return 0;
     }
 
@@ -68,11 +68,11 @@ pub const String = struct {
     pub fn allocate(self: *String, bytes: usize) Error!void {
         if (self.buffer) |buffer| {
             if (bytes < self.size) self.size = bytes; // Clamp size to capacity
-            self.buffer = self.allocator.realloc(buffer, bytes) catch {
+            self.buffer = self.allocator.realloc(buffer, bytes + 1) catch {
                 return Error.OutOfMemory;
             };
         } else {
-            self.buffer = self.allocator.alloc(u8, bytes) catch {
+            self.buffer = self.allocator.alloc(u8, bytes + 1) catch {
                 return Error.OutOfMemory;
             };
         }
@@ -92,8 +92,8 @@ pub const String = struct {
     pub fn insert(self: *String, literal: []const u8, index: usize) Error!void {
         // Make sure buffer has enough space
         if (self.buffer) |buffer| {
-            if (self.size + literal.len > buffer.len) {
-                try self.allocate((self.size + literal.len) * 2);
+            if (self.size + literal.len > buffer.len - 1) {
+                try self.allocate((self.size + literal.len) * 2 + 1);
             }
         } else {
             try self.allocate((literal.len) * 2);
@@ -111,9 +111,9 @@ pub const String = struct {
         } else {
             if (String.getIndex(buffer, index, true)) |k| {
                 // Move existing contents over
-                var i: usize = buffer.len - 1;
+                var i: usize = buffer.len - 2;
                 while (i >= k) : (i -= 1) {
-                    if (i + literal.len < buffer.len) {
+                    if (i + literal.len < buffer.len - 1) {
                         buffer[i + literal.len] = buffer[i];
                     }
 
@@ -167,6 +167,14 @@ pub const String = struct {
     ///```
     pub fn str(self: String) []const u8 {
         if (self.buffer) |buffer| return buffer[0..self.size];
+        return "";
+    }
+
+    pub fn strC(self: String) []const u8 {
+        if (self.buffer) |buffer| {
+            buffer[self.size] = 0;
+            return buffer[0..self.size];
+        }
         return "";
     }
 
@@ -595,7 +603,7 @@ pub const String = struct {
             const InputSize = self.size;
             const size = std.mem.replacementSize(u8, buffer[0..InputSize], needle, replacement);
             defer self.allocator.free(buffer);
-            self.buffer = self.allocator.alloc(u8, size) catch {
+            self.buffer = self.allocator.alloc(u8, size + 1) catch {
                 return Error.OutOfMemory;
             };
             self.size = size;
@@ -609,7 +617,6 @@ pub const String = struct {
 
     /// Checks if the needle String is within the source String
     pub fn includesString(self: *String, needle: String) bool {
-
         if (self.size == 0 or needle.size == 0) return false;
 
         if (self.buffer) |buffer| {
@@ -627,7 +634,6 @@ pub const String = struct {
 
     /// Checks if the needle literal is within the source String
     pub fn includesLiteral(self: *String, needle: []const u8) bool {
-
         if (self.size == 0 or needle.len == 0) return false;
 
         if (self.buffer) |buffer| {
