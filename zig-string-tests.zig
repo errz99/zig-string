@@ -53,7 +53,6 @@ test "String Tests" {
     // str & cmp
     try expect(myStr.cmp("A\u{5360}💯Hell"));
     try expect(myStr.cmp(myStr.str()));
-    try expect(myStr.cmp(myStr.strC()));
     try expectEqual(myStr.buffer.?[myStr.size], 0);
 
     // charAt

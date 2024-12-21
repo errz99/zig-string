@@ -7,6 +7,8 @@ pub const String = struct {
     /// The internal character buffer
     buffer: ?[]u8,
     /// The allocator used for managing the buffer
+    /// Includes an extra byte at the end to hold a
+    /// kind of sentinel ('0') that facilitates use with C code
     allocator: std.mem.Allocator,
     /// The total size of the String
     size: usize,
@@ -166,11 +168,6 @@ pub const String = struct {
     ///std.debug.print("{s}\n", .{mystr.str()});
     ///```
     pub fn str(self: String) []const u8 {
-        if (self.buffer) |buffer| return buffer[0..self.size];
-        return "";
-    }
-
-    pub fn strC(self: String) []const u8 {
         if (self.buffer) |buffer| {
             buffer[self.size] = 0;
             return buffer[0..self.size];
