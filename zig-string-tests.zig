@@ -302,3 +302,13 @@ test "includes Tests" {
     try expect(myString.includesLiteral("") == false);
     try expect(myString.includesString(needle) == false);
 }
+
+test "MAG Tests" {
+    var my_string = String.init(std.testing.allocator);
+    defer my_string.deinit();
+
+    try my_string.concat("Hello mag!");
+    const mag_z = my_string.strZ();
+    try expectEqual(mag_z.len, 10);
+    try expectEqual(mag_z[9], '!');
+}

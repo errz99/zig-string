@@ -1,6 +1,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const builtin = @import("builtin");
+// const dupeZ = std.mem.Allocator.dupeZ;
 
 /// A variable length collection of characters
 pub const String = struct {
@@ -171,6 +172,15 @@ pub const String = struct {
         if (self.buffer) |buffer| {
             buffer[self.size] = 0;
             return buffer[0..self.size];
+        }
+        return "";
+    }
+
+    /// Returns the String buffer as a string literal but zero terminated
+    pub fn strZ(self: String) [:0]const u8 {
+        if (self.buffer) |buffer| {
+            buffer[self.size] = 0;
+            return buffer[0..self.size :0];
         }
         return "";
     }
