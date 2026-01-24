@@ -8,6 +8,8 @@ pub const String = struct {
     /// The internal character buffer
     buffer: ?[]u8,
     /// The allocator used for managing the buffer
+    /// Includes an extra byte at the end to hold a
+    /// kind of sentinel ('0') that facilitates use with C code    allocator: std.mem.Allocator,
     allocator: std.mem.Allocator,
     /// The total size of the String
     size: usize,
@@ -73,7 +75,7 @@ pub const String = struct {
                 return Error.OutOfMemory;
             };
         } else {
-            self.buffer = self.allocator.alloc(u8, bytes) catch {
+            self.buffer = self.allocator.alloc(u8, bytes + 1) catch {
                 return Error.OutOfMemory;
             };
         }
